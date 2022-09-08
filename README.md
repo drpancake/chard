@@ -1,6 +1,6 @@
 # Chard
 
-**Experimental!**
+**⚠️ Experimental ⚠️**
 
 A simple async/await task queue for Django. One process, no threads, no
 other dependencies.
