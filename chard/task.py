@@ -1,5 +1,7 @@
 import json
 
+from .exceptions import SerializationException
+
 
 class TaskWrapper:
     def __init__(self, fn, *, task_name):
@@ -13,9 +15,14 @@ class TaskWrapper:
     def send(self, *args, **kwargs):
         from chard.models import Task
 
+        try:
+            data = json.dumps(dict(args=args, kwargs=kwargs))
+        except (TypeError, OverflowError):
+            raise SerializationException(self.task_name)
+
         Task.objects.create(
             name=self.task_name,
-            task_data=json.dumps(dict(args=args, kwargs=kwargs)),
+            task_data=data,
         )
 
 

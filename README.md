@@ -50,6 +50,7 @@ async def my_task(country_code):
 To fire a task for the worker:
 
 ```python
+# Note that all arguments must be JSON serializable.
 my_task.send("gb")
 ```
 
