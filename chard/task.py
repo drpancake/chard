@@ -25,6 +25,9 @@ class TaskWrapper:
             task_data=data,
         )
 
+    def __call__(self, *args, **kwargs):
+        return self.fn(*args, **kwargs)
+
 
 def task(fn=None):
     def decorator(fn):
