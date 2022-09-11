@@ -3,6 +3,7 @@ import asyncio
 import traceback
 from asgiref.sync import sync_to_async
 
+from django.db import close_old_connections
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
@@ -30,6 +31,7 @@ async def loop():
     task_fns = discover_task_functions()
     task_models = {}
     tasks = []
+    i = 0
     print(f"chard: starting with {max_concurrent_tasks} concurrent tasks")
 
     while True:
@@ -68,8 +70,13 @@ async def loop():
                     )
                     traceback.print_exc()
                     await update_status(task_model, Task.STATUS_FAILED)
+        # We need to periodically cleanup old DB connections.
+        if i % 100 == 0:
+            await sync_to_async(close_old_connections)()
+            i = 0
         # Yield back to the event loop so that tasks can execute.
-        await asyncio.sleep(0)
+        await asyncio.sleep(0.1)
+        i += 1
 
 
 class Command(BaseCommand):
