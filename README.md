@@ -58,3 +58,12 @@ Run the worker process and it will listen for new pending tasks:
 ```sh
 python manage.py chardworker
 ```
+
+## Configuration
+
+You can optionally tell Chard how many max concurrent tasks you would like
+to run by placing this in your `settings.py`:
+
+```python
+CHARD_MAX_CONCURRENT_TASKS = 50 # defaults to 10
+```
