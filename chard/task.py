@@ -7,10 +7,7 @@ class TaskWrapper:
     def __init__(self, fn, *, task_name):
         self.fn = fn
         self.task_name = task_name
-
-    @property
-    def is_chard_task(self):
-        return True
+        self.is_chard_task = True
 
     def send(self, *args, **kwargs):
         from chard.models import Task
@@ -27,6 +24,10 @@ class TaskWrapper:
 
     def __call__(self, *args, **kwargs):
         return self.fn(*args, **kwargs)
+
+
+def is_task(obj):
+    return isinstance(obj, TaskWrapper)
 
 
 def task(fn=None):

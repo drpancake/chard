@@ -6,11 +6,8 @@ import pkgutil
 from django.apps import apps
 from django.utils.module_loading import module_has_submodule
 
+from .task import is_task
 from .exceptions import NotAsyncException
-
-
-def is_chard_task(module):
-    return hasattr(module, "is_chard_task")
 
 
 def is_package(module):
@@ -28,12 +25,11 @@ def get_submodules(package):
 
 
 def discover_task_functions():
-    task_module_names = ("tasks",)
+    task_module = "tasks"
     app_configs = []
     for conf in apps.get_app_configs():
-        for task_module in task_module_names:
-            if module_has_submodule(conf.module, task_module):
-                app_configs.append((conf, task_module))
+        if module_has_submodule(conf.module, task_module):
+            app_configs.append((conf, task_module))
     modules = []
     for conf, task_module in app_configs:
         module = conf.name + "." + task_module
@@ -46,7 +42,7 @@ def discover_task_functions():
                 modules.append(submodule)
     fns = {}
     for module in modules:
-        for name, task_wrapper in getmembers(module, is_chard_task):
+        for name, task_wrapper in getmembers(module, is_task):
             task_name = task_wrapper.task_name
             fn = task_wrapper.fn
             if not asyncio.iscoroutinefunction(fn):
@@ -54,5 +50,5 @@ def discover_task_functions():
             fns[task_name] = fn
     print(f"chard: loaded {len(fns)} task functions")
     for task_name in fns.keys():
-        print(f"---> {task_name}")
+        print(f"--> {task_name}")
     return fns
