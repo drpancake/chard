@@ -46,12 +46,13 @@ def discover_task_functions():
                 modules.append(submodule)
     fns = {}
     for module in modules:
-        print("discovered tasks module: %r" % module.__name__)
         for name, task_wrapper in getmembers(module, is_chard_task):
             task_name = task_wrapper.task_name
-            print(f"---> {task_name}")
             fn = task_wrapper.fn
             if not asyncio.iscoroutinefunction(fn):
                 raise NotAsyncException(task_name)
             fns[task_name] = fn
+    print(f"chard: loaded {len(fns)} task functions")
+    for task_name in fns.keys():
+        print(f"---> {task_name}")
     return fns

@@ -1,58 +1,75 @@
 import json
 import asyncio
+import traceback
 from asgiref.sync import sync_to_async
 
 from django.core.management.base import BaseCommand
+from django.conf import settings
 
 from chard.discover import discover_task_functions
 from chard.models import Task
 from chard.exceptions import UnknownTaskException
 
-TASKS_PER_LOOP = 10
 
-
-async def run_task(task_id, fn, task_data):
+async def run_task(fn, task_data):
     obj = json.loads(task_data)
     args = obj["args"]
     kwargs = obj["kwargs"]
-    try:
-        await fn(*args, **kwargs)
-        return task_id, None
-    except Exception as e:
-        return task_id, e
+    await fn(*args, **kwargs)
+
+
+async def update_status(task_model, status):
+    task_model.status = status
+    await sync_to_async(task_model.save)(
+        update_fields=["status", "updated_at"]
+    )
 
 
 async def loop():
+    max_concurrent_tasks = getattr(settings, "CHARD_MAX_CONCURRENT_TASKS", 10)
     task_fns = discover_task_functions()
-    print(f"loaded {len(task_fns)} task functions")
+    task_models = {}
+    tasks = []
+    print(f"chard: starting with {max_concurrent_tasks} concurrent tasks")
 
     while True:
-        awaitables = []
-        tasks = {}
-        qs = Task.objects.filter(status=Task.STATUS_PENDING).order_by(
-            "created_at"
-        )
-        async for task in qs[:TASKS_PER_LOOP]:
-            print(f"[{task.name}] [{task.id}] queueing")
-            tasks[task.id] = task
-            fn = task_fns.get(task.name)
-            if not fn:
-                raise UnknownTaskException(task.name)
-            awaitables.append(run_task(task.id, fn, task.task_data))
+        # Create and run new tasks if we have capacity.
+        capacity = max_concurrent_tasks - len(tasks)
+        if capacity > 0:
+            qs = (
+                Task.objects.select_for_update(skip_locked=True)
+                .filter(status=Task.STATUS_PENDING)
+                .order_by("created_at")[:capacity]
+            )
+            async for task_model in qs:
+                task_id = str(task_model.id)
+                task_models[task_id] = task_model
+                fn = task_fns.get(task_model.name)
+                if not fn:
+                    raise UnknownTaskException(task_model.name)
+                await update_status(task_model, Task.STATUS_RUNNING)
 
-        if awaitables:
-            print(f"running {len(awaitables)} tasks")
-            for awaitable in asyncio.as_completed(awaitables):
-                task_id, exc = await awaitable
-                task = tasks[task_id]
-                if exc:
-                    task.status = Task.STATUS_FAILED
-                else:
-                    task.status = Task.STATUS_DONE
-                await sync_to_async(task.save)(
-                    update_fields=["status", "updated_at"]
-                )
-                print(f"[{task.name}] [{task.id}] {task.status=} | {exc=}")
+                task = asyncio.create_task(run_task(fn, task_model.task_data))
+                task.set_name(task_id)
+                tasks.append(task)
+        # Handle completed and failed tasks.
+        for task in tasks:
+            if task.done():
+                task_id = task.get_name()
+                task_model = task_models.pop(task_id)
+                tasks.remove(task)
+                try:
+                    task.result()
+                    await update_status(task_model, Task.STATUS_DONE)
+                except Exception as e:
+                    print(
+                        f"[{task_id}] [{task_model.name}] Raised an "
+                        f"exception: {e}"
+                    )
+                    traceback.print_exc()
+                    await update_status(task_model, Task.STATUS_FAILED)
+        # Yield back to the event loop so that tasks can execute.
+        await asyncio.sleep(0)
 
 
 class Command(BaseCommand):
