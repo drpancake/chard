@@ -63,7 +63,7 @@ Run the worker process and it will watch for new pending tasks:
 python manage.py chardworker
 ```
 
-## Configuration
+## Configuration
 
 You can optionally place these in your `settings.py`:
 
@@ -76,7 +76,7 @@ CHARD_MAX_CONCURRENT_TASKS = 50
 CHARD_TIMEOUT = 30
 ```
 
-## Credit
+## Credit
 
 Parts of Chard were inspired by [dramatiq](https://github.com/Bogdanp/dramatiq)
 and [django_dramatiq](https://github.com/Bogdanp/django_dramatiq).
