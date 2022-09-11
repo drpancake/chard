@@ -1,13 +1,13 @@
 # Chard
 
-**⚠️ Experimental ⚠️**
+Chard is a very simple async/await background task queue for Django. One
+process, no threads, no other dependencies.
 
-A simple async/await task queue for Django. One process, no threads, no
-other dependencies.
+It uses Django's ORM to keep track of tasks.
 
-It uses the Django ORM to keep track of tasks.
+Not very efficient or battle tested - PRs welcome!
 
-Parts of Chard were inspired by [dramatiq](https://github.com/Bogdanp/dramatiq)
+Parts of this were inspired by [dramatiq](https://github.com/Bogdanp/dramatiq)
 and [django_dramatiq](https://github.com/Bogdanp/django_dramatiq).
 
 ## Installation
@@ -53,7 +53,7 @@ To fire a task for the worker:
 my_task.send("gb")
 ```
 
-Run the worker process and it will listen for new pending tasks:
+Run the worker process and it will watch for new pending tasks:
 
 ```sh
 python manage.py chardworker
@@ -61,9 +61,9 @@ python manage.py chardworker
 
 ## Configuration
 
-You can optionally tell Chard how many max concurrent tasks you would like
-to run by placing this in your `settings.py`:
+You can optionally place these in your `settings.py`:
 
 ```python
-CHARD_MAX_CONCURRENT_TASKS = 50 # defaults to 10
+# How many tasks can run concurrently (default: 10)
+CHARD_MAX_CONCURRENT_TASKS = 50
 ```
