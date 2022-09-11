@@ -1,3 +1,4 @@
+import time
 import json
 import asyncio
 import traceback
@@ -27,16 +28,17 @@ async def update_status(task_model, status):
 
 
 async def loop():
-    max_concurrent_tasks = getattr(settings, "CHARD_MAX_CONCURRENT_TASKS", 10)
+    max_tasks = getattr(settings, "CHARD_MAX_CONCURRENT_TASKS", 10)
+    timeout = getattr(settings, "CHARD_TIMEOUT", 60)
     task_fns = discover_task_functions()
     task_models = {}
     tasks = []
     i = 0
-    print(f"chard: starting with {max_concurrent_tasks} concurrent tasks")
+    print(f"chard: {max_tasks} concurrent tasks, {timeout}s timeout")
 
     while True:
         # Create and run new tasks if we have capacity.
-        capacity = max_concurrent_tasks - len(tasks)
+        capacity = max_tasks - len(tasks)
         if capacity > 0:
             qs = (
                 Task.objects.select_for_update(skip_locked=True)
@@ -53,29 +55,39 @@ async def loop():
 
                 task = asyncio.create_task(run_task(fn, task_model.task_data))
                 task.set_name(task_id)
-                tasks.append(task)
+                tasks.append((task, time.time()))
         # Handle completed and failed tasks.
-        for task in tasks:
+        for tup in tasks:
+            task, started = tup
             if task.done():
                 task_id = task.get_name()
                 task_model = task_models.pop(task_id)
-                tasks.remove(task)
+                tasks.remove(tup)
                 try:
                     task.result()
                     await update_status(task_model, Task.STATUS_DONE)
-                except Exception as e:
-                    print(
-                        f"[{task_id}] [{task_model.name}] Raised an "
-                        f"exception: {e}"
-                    )
-                    traceback.print_exc()
+                except BaseException as e:
+                    if not isinstance(e, asyncio.CancelledError):
+                        print(
+                            f"[{task_model.name}] [{task_id}] Raised an "
+                            f"exception: {e}"
+                        )
+                        traceback.print_exc()
                     await update_status(task_model, Task.STATUS_FAILED)
+            elif timeout != 0 and (time.time() - started) >= timeout:
+                # This schedules cancellation of the task on the next loop
+                # and the `task.done()` check above will clean it up.
+                task.cancel()
+                print(
+                    f"[{task_model.name}] [{task_id}] Timed out after"
+                    f" {timeout} seconds"
+                )
         # We need to periodically cleanup old DB connections.
         if i % 100 == 0:
             await sync_to_async(close_old_connections)()
             i = 0
         # Yield back to the event loop so that tasks can execute.
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
         i += 1
 
 
