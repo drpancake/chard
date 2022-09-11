@@ -3,12 +3,15 @@
 Chard is a very simple async/await background task queue for Django. One
 process, no threads, no other dependencies.
 
-It uses Django's ORM to keep track of tasks.
+It uses Django's ORM to keep track of tasks. Not very efficient or battle
+tested. PRs are welcome!
 
-Not very efficient or battle tested - PRs welcome!
+🔗 [Check the example Django project](https://github.com/drpancake/chard-django-example)
 
-Parts of this were inspired by [dramatiq](https://github.com/Bogdanp/dramatiq)
-and [django_dramatiq](https://github.com/Bogdanp/django_dramatiq).
+## Requirements
+
+- Python 3.8+
+- Django 4.1+
 
 ## Installation
 
@@ -72,3 +75,8 @@ CHARD_MAX_CONCURRENT_TASKS = 50
 # to 0 means no timeout (default: 60)
 CHARD_TIMEOUT = 30
 ```
+
+## Credit
+
+Parts of Chard were inspired by [dramatiq](https://github.com/Bogdanp/dramatiq)
+and [django_dramatiq](https://github.com/Bogdanp/django_dramatiq).
