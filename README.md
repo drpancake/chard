@@ -76,7 +76,9 @@ CHARD_MAX_CONCURRENT_TASKS = 50
 CHARD_TIMEOUT = 30
 ```
 
-## Credit
+## Roadmap
 
-Parts of Chard were inspired by [dramatiq](https://github.com/Bogdanp/dramatiq)
-and [django_dramatiq](https://github.com/Bogdanp/django_dramatiq).
+- Figure out how to continually check for new pending tasks without hammering the DB too much
+- Error reporting interface to hook up e.g. Sentry
+- Simple monitoring dashboard
+- Task scheduling
