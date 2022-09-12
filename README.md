@@ -78,6 +78,7 @@ CHARD_TIMEOUT = 30
 
 ## Roadmap
 
+- Return `Task.id` when firing a task so that you can check its status
 - Figure out how to continually check for new pending tasks without hammering the DB too much
 - Error reporting interface to hook up e.g. Sentry
 - Simple monitoring dashboard
