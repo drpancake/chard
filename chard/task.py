@@ -7,7 +7,6 @@ class TaskWrapper:
     def __init__(self, fn, *, task_name):
         self.fn = fn
         self.task_name = task_name
-        self.is_chard_task = True
 
     def send(self, *args, **kwargs):
         from chard.models import Task
