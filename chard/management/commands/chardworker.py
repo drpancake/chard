@@ -60,8 +60,8 @@ async def loop() -> None:
         # Handle completed and failed tasks.
         for tup in tasks:
             task, started = tup
+            task_id = task.get_name()
             if task.done():
-                task_id = task.get_name()
                 task_model = task_models.pop(task_id)
                 tasks.remove(tup)
                 try:
@@ -80,8 +80,8 @@ async def loop() -> None:
                 # and the `task.done()` check above will clean it up.
                 task.cancel()
                 print(
-                    f"[{task_model.name}] [{task_id}] Timed out after"
-                    f" {timeout} seconds"
+                    f"[{task_models[task_id].name}] [{task_id}] Timed out "
+                    f"after {timeout} seconds"
                 )
         # We need to periodically cleanup old DB connections.
         if i % 100 == 0:
