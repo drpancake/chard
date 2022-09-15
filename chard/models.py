@@ -4,20 +4,15 @@ from django.db import models
 
 
 class Task(models.Model):
-    STATUS_PENDING = "pending"
-    STATUS_RUNNING = "running"
-    STATUS_FAILED = "failed"
-    STATUS_DONE = "done"
-    STATUSES = [
-        (STATUS_PENDING, "Pending"),
-        (STATUS_RUNNING, "Running"),
-        (STATUS_FAILED, "Failed"),
-        (STATUS_DONE, "Done"),
-    ]
+    class Status(models.TextChoices):
+        PENDING = "pending"
+        RUNNING = "running"
+        FAILED = "failed"
+        DONE = "done"
 
     id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     status = models.CharField(
-        max_length=10, choices=STATUSES, default=STATUS_PENDING
+        max_length=10, choices=Status.choices, default=Status.PENDING
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)

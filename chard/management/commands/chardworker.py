@@ -42,7 +42,7 @@ async def loop():
         if capacity > 0:
             qs = (
                 Task.objects.select_for_update(skip_locked=True)
-                .filter(status=Task.STATUS_PENDING)
+                .filter(status=Task.Status.PENDING)
                 .order_by("created_at")[:capacity]
             )
             async for task_model in qs:
@@ -51,7 +51,7 @@ async def loop():
                 fn = task_fns.get(task_model.name)
                 if not fn:
                     raise UnknownTaskException(task_model.name)
-                await update_status(task_model, Task.STATUS_RUNNING)
+                await update_status(task_model, Task.Status.RUNNING)
 
                 task = asyncio.create_task(run_task(fn, task_model.task_data))
                 task.set_name(task_id)
@@ -65,7 +65,7 @@ async def loop():
                 tasks.remove(tup)
                 try:
                     task.result()
-                    await update_status(task_model, Task.STATUS_DONE)
+                    await update_status(task_model, Task.Status.DONE)
                 except BaseException as e:
                     if not isinstance(e, asyncio.CancelledError):
                         print(
@@ -73,7 +73,7 @@ async def loop():
                             f"exception: {e}"
                         )
                         traceback.print_exc()
-                    await update_status(task_model, Task.STATUS_FAILED)
+                    await update_status(task_model, Task.Status.FAILED)
             elif timeout != 0 and (time.time() - started) >= timeout:
                 # This schedules cancellation of the task on the next loop
                 # and the `task.done()` check above will clean it up.
