@@ -6,11 +6,13 @@ from .exceptions import SerializationException
 
 class TaskWrapper:
     fn: AsyncFunction
-    task_name: str
 
-    def __init__(self, fn: AsyncFunction, *, task_name: str):
+    def __init__(self, fn: AsyncFunction):
         self.fn = fn
-        self.task_name = task_name
+
+    @property
+    def task_name(self) -> str:
+        return f"{self.fn.__module__}.{self.fn.__name__}"
 
     def send(self, *args, **kwargs) -> None:
         from chard.models import Task
@@ -28,16 +30,16 @@ class TaskWrapper:
     def __call__(self, *args, **kwargs):
         return self.fn(*args, **kwargs)
 
+    def __str__(self):
+        return f"TaskWrapper: {self.task_name}"
+
 
 def is_task(obj):
     return isinstance(obj, TaskWrapper)
 
 
-def task(fn=None):
-    def decorator(fn: AsyncFunction) -> TaskWrapper:
-        task_name = f"{fn.__module__}.{fn.__name__}"
-        return TaskWrapper(fn, task_name=task_name)
+def task(fn: AsyncFunction) -> TaskWrapper:
+    def decorator() -> TaskWrapper:
+        return TaskWrapper(fn)
 
-    if fn is None:
-        return decorator
-    return decorator(fn)
+    return decorator()
