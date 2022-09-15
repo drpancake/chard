@@ -83,3 +83,11 @@ CHARD_TIMEOUT = 30
 - Error reporting interface to hook up e.g. Sentry
 - Simple monitoring dashboard
 - Task scheduling
+
+## Contributing
+
+Please see [CONTRIBUTING](CONTRIBUTING.md) the contributing guidelines.
+
+## License
+
+Please see [LICENSE](LICENSE) for licensing details.
