@@ -1,14 +1,18 @@
 import json
 
+from .types import AsyncFunction
 from .exceptions import SerializationException
 
 
 class TaskWrapper:
-    def __init__(self, fn, *, task_name):
+    fn: AsyncFunction
+    task_name: str
+
+    def __init__(self, fn: AsyncFunction, *, task_name: str):
         self.fn = fn
         self.task_name = task_name
 
-    def send(self, *args, **kwargs):
+    def send(self, *args, **kwargs) -> None:
         from chard.models import Task
 
         try:
@@ -30,7 +34,7 @@ def is_task(obj):
 
 
 def task(fn=None):
-    def decorator(fn):
+    def decorator(fn: AsyncFunction) -> TaskWrapper:
         task_name = f"{fn.__module__}.{fn.__name__}"
         return TaskWrapper(fn, task_name=task_name)
 

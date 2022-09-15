@@ -2,19 +2,19 @@ import time
 import json
 import asyncio
 import traceback
-from typing import Callable
 from asgiref.sync import sync_to_async
 
 from django.db import close_old_connections
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
+from chard.types import AsyncFunction
 from chard.discover import discover_task_functions
 from chard.models import Task
 from chard.exceptions import UnknownTaskException
 
 
-async def run_task(fn: Callable, task_data: str) -> None:
+async def run_task(fn: AsyncFunction, task_data: str) -> None:
     obj = json.loads(task_data)
     args = obj["args"]
     kwargs = obj["kwargs"]

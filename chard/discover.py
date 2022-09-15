@@ -1,20 +1,22 @@
 import asyncio
 import importlib
-from inspect import getmembers
 import pkgutil
+from inspect import getmembers
+from types import ModuleType
 
 from django.apps import apps
 from django.utils.module_loading import module_has_submodule
 
+from .types import AsyncFunction
 from .task import is_task
 from .exceptions import NotAsyncException
 
 
-def is_package(module):
+def is_package(module: ModuleType) -> bool:
     return hasattr(module, "__path__")
 
 
-def get_submodules(package):
+def get_submodules(package: ModuleType) -> list[ModuleType]:
     submodules = []
     package_path = package.__path__
     prefix = package.__name__ + "."
@@ -24,12 +26,12 @@ def get_submodules(package):
     return submodules
 
 
-def discover_task_functions():
-    task_module = "tasks"
+def discover_task_functions() -> dict[str, AsyncFunction]:
+    app_tasks_module = "tasks"
     app_configs = []
     for conf in apps.get_app_configs():
-        if module_has_submodule(conf.module, task_module):
-            app_configs.append((conf, task_module))
+        if module_has_submodule(conf.module, app_tasks_module):
+            app_configs.append((conf, app_tasks_module))
     modules = []
     for conf, task_module in app_configs:
         module = conf.name + "." + task_module
