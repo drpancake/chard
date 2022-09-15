@@ -6,6 +6,8 @@ process, no threads, no other dependencies.
 It uses Django's ORM to keep track of tasks. Not very efficient or battle
 tested. PRs are welcome!
 
+📨 [**Sign up to the newsletter to get news and updates**](https://mailchi.mp/3b66d5565783/chard-newsletter)
+
 🔗 [Check the example Django project](https://github.com/drpancake/chard-django-example)
 
 ## Requirements
@@ -62,6 +64,10 @@ Run the worker process and it will watch for new pending tasks:
 ```sh
 python manage.py chardworker
 ```
+
+To see Chard in action:
+
+🔗 [Check the example Django project](https://github.com/drpancake/chard-django-example)
 
 ## Configuration
 
