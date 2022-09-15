@@ -2,6 +2,7 @@ import time
 import json
 import asyncio
 import traceback
+from typing import Callable
 from asgiref.sync import sync_to_async
 
 from django.db import close_old_connections
@@ -13,21 +14,21 @@ from chard.models import Task
 from chard.exceptions import UnknownTaskException
 
 
-async def run_task(fn, task_data):
+async def run_task(fn: Callable, task_data: str) -> None:
     obj = json.loads(task_data)
     args = obj["args"]
     kwargs = obj["kwargs"]
     await fn(*args, **kwargs)
 
 
-async def update_status(task_model, status):
+async def update_status(task_model: Task, status) -> None:
     task_model.status = status
     await sync_to_async(task_model.save)(
         update_fields=["status", "updated_at"]
     )
 
 
-async def loop():
+async def loop() -> None:
     max_tasks = getattr(settings, "CHARD_MAX_CONCURRENT_TASKS", 10)
     timeout = getattr(settings, "CHARD_TIMEOUT", 60)
     task_fns = discover_task_functions()
