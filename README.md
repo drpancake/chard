@@ -71,14 +71,6 @@ To see a full example of Chard in action:
 
 🔗 [Check the example Django project](https://github.com/drpancake/chard-django-example)
 
-## Roadmap
-
-- Return `Task.id` when firing a task so that you can check its status
-- Figure out how to continually check for new pending tasks without hammering the DB too much
-- Error reporting interface to hook up e.g. Sentry
-- Simple monitoring dashboard
-- Task scheduling
-
 ## Contributing
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) the contributing guidelines.
@@ -86,3 +78,14 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) the contributing guidelines.
 ## License
 
 Please see [LICENSE](LICENSE) for licensing details.
+
+## Changelog
+
+**0.2 (2022-09-16)**
+
+```
+- Type hinting
+- Return a task ID when queueing a task
+- Added docs
+- Tidying and bug fixes
+```
