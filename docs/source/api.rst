@@ -34,6 +34,17 @@ You can also call it synchronously:
 
    await my_task(123)
 
+Queueing a task returns a UUID that can be used to retrieve the corresponding
+``Task`` model instance:
+
+.. code-block:: python
+
+   from chard.models import Task
+
+   task_id = my_task.send(123)
+   task = Task.objects.get(id=task_id)
+   task.status # => 'pending'
+
 Task model
 ----------
 
@@ -49,7 +60,7 @@ How to count the number of pending tasks:
 
    from chard.models import Task
 
-   Task.objects.filter(status=Task.Status.PENDING).count()
+   Task.objects.filter(status=Task.Status.PENDING).count() # => 5
 
 Fetch a specific task:
 

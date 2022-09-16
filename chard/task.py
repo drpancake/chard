@@ -14,7 +14,7 @@ class TaskWrapper:
     def task_name(self) -> str:
         return f"{self.fn.__module__}.{self.fn.__name__}"
 
-    def send(self, *args, **kwargs) -> None:
+    def send(self, *args, **kwargs) -> str:
         from chard.models import Task
 
         try:
@@ -22,10 +22,11 @@ class TaskWrapper:
         except (TypeError, OverflowError):
             raise SerializationException(self.task_name)
 
-        Task.objects.create(
+        task = Task.objects.create(
             name=self.task_name,
             task_data=data,
         )
+        return str(task.id)
 
     def __call__(self, *args, **kwargs):
         return self.fn(*args, **kwargs)

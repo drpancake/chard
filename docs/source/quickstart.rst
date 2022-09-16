@@ -6,6 +6,9 @@ the migrations::
 
   python manage.py migrate
 
+Define a task
+-------------
+
 Create a file called ``tasks.py`` inside one of your Django apps and define
 a task:
 
@@ -29,6 +32,9 @@ a task:
             item=item
           )
 
+Running tasks
+-------------
+
 To fire a task for the worker:
 
 ..  code-block:: python
@@ -40,8 +46,33 @@ Run the worker process and it will watch for new pending tasks::
 
   python manage.py chardworker
 
-Example project
----------------
+
+Check the state of tasks
+------------------------
+
+Queueing a task returns a UUID that can be used to retrieve the corresponding
+``Task`` model instance:
+
+.. code-block:: python
+
+   from chard.models import Task
+
+   task_id = my_task.send(123)
+   task_id # => 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d'
+
+   task = Task.objects.get(id=task_id)
+   task.status # => 'pending'
+
+You can also count the number of pending tasks:
+
+.. code-block:: python
+
+   from chard.models import Task
+
+   Task.objects.filter(status=Task.Status.PENDING).count() # => 5
+
+Example Django project
+----------------------
 
 To see a full example of Chard in action:
 
