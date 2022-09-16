@@ -39,6 +39,11 @@ def is_task(obj):
 
 
 def task(fn: AsyncFunction) -> TaskWrapper:
+    """
+    Applying this decorator to an async function will turn it into a task
+    object that will be discoverable by the Chard worker.
+    """
+
     def decorator() -> TaskWrapper:
         return TaskWrapper(fn)
 
